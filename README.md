@@ -4,8 +4,6 @@
 
 ##### DisRec: Disentangled Modeling of Preference and Social Influence for Group Recommendation
 
- [fig3.pdf](C:\Users\lustre\Desktop\近期项目\ECNU\AAAI2025\图片\论文图片\svg\fig3.pdf) 
-
 
 
 ## Dependencies
