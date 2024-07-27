@@ -3,6 +3,7 @@
 
 
 ##### DisRec: Disentangled Modeling of Preference and Social Influence for Group Recommendation
+![](./figs/overview.png)
 
 
 
