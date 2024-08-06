@@ -19,77 +19,8 @@ def trans_to_cpu(variable):
 
 class DisRec(nn.Module):
     def __init__(self, config, gi_dataset, ui_dataset, device):
-        super(DisRec, self).__init__()
-        self.u_emb_dim = config.u_emb_size
-        self.g_emb_dim = config.g_emb_size
-        self.layers = config.layers
-        self.drop_ratio = config.drop_ratio
-
-        self.num_users = gi_dataset.num_users
-        self.num_items = gi_dataset.num_items
-        self.num_groups = gi_dataset.num_groups
-        self.group_member_dict = gi_dataset.group_member_dict
-
-        adj, D, A = gi_dataset.adj, gi_dataset.D, gi_dataset.A
-        D = torch.Tensor(D).to(device)
-        A = torch.Tensor(A).to(device)
-        values = adj.data
-        indices = np.vstack(
-            (adj.row, adj.col))
-        i = torch.LongTensor(indices).to(device)
-        v = torch.FloatTensor(values).to(device)
-        shape = adj.shape
-        adj = torch.sparse_coo_tensor(i, v, torch.Size(shape)).to(device)
-
-        self.adj = adj
-        self.D = D
-        self.A = A
-
-        self.user_embedding = nn.Embedding(self.num_users, self.u_emb_dim)
-        self.item_embedding = nn.Embedding(self.num_items, self.u_emb_dim)
-        self.group_embedding = nn.Embedding(self.num_groups, self.g_emb_dim)
-        self.hyper_graph = HyperConv(self.layers)
-        self.group_graph = GroupConv(self.layers)
-        self.attention1 = AttentionLayer(2 * self.u_emb_dim, self.drop_ratio)
-        self.attention2 = AttentionLayer(2 * self.g_emb_dim, self.drop_ratio)
-        self.predict1 = PredictLayer(3 * self.u_emb_dim, self.drop_ratio)
-        self.predict2 = PredictLayer(3 * self.g_emb_dim, self.drop_ratio)
-
-        self.ui_dataset = ui_dataset
-        self.device = device
-        self.preference = PreferenceLayer(self.ui_dataset, self.u_emb_dim, self.layers)
-
-        nn.init.xavier_uniform_(self.user_embedding.weight)
-        nn.init.xavier_uniform_(self.item_embedding.weight)
-        nn.init.xavier_uniform_(self.group_embedding.weight)
-
-        self.fc_layer = torch.nn.Linear(self.g_emb_dim, self.g_emb_dim, bias=True)
-        nn.init.xavier_uniform_(self.fc_layer.weight)
-        nn.init.zeros_(self.fc_layer.bias)
-
-        self.bilinear_layer = nn.Bilinear(self.g_emb_dim, self.g_emb_dim, 1)  # output_dim = 1 => single score.
-        nn.init.zeros_(self.bilinear_layer.weight)
-        nn.init.zeros_(self.bilinear_layer.bias)
-
-        self.f = nn.ReLU()
-
-        self.att_gate = nn.Sequential(nn.Linear(self.g_emb_dim, 1), nn.Sigmoid())
-        self.hyper_gate = nn.Sequential(nn.Linear(self.g_emb_dim, 1), nn.Sigmoid())
-
-    def reg_loss(self, group, pos, neg):
-        group_emb_ego = self.group_embedding(group)
-        pos_emb_ego = self.item_embedding(pos)
-        neg_emb_ego = self.item_embedding(neg)
-        reg_loss = (1 / 2) * (group_emb_ego.norm(2).pow(2) +
-                              pos_emb_ego.norm(2).pow(2) +
-                              neg_emb_ego.norm(2).pow(2)) / float(len(group))
-        return reg_loss
-
-    def forward(self, group_inputs, user_inputs, item_inputs, friends, friends_mask, members, members_mask):
-        if (group_inputs is not None) and (user_inputs is None):
-            ### 
-        else:
-            ###
+        ''''''
+        
 
 
 class HyperConv(nn.Module):
