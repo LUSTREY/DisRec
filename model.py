@@ -87,88 +87,9 @@ class DisRec(nn.Module):
 
     def forward(self, group_inputs, user_inputs, item_inputs, friends, friends_mask, members, members_mask):
         if (group_inputs is not None) and (user_inputs is None):
-            u_p_emb, i_p_emb = self.preference.embedding_user.weight, self.preference.embedding_item.weight
-            u_s_emb, i_s_emb = self.user_embedding.weight, self.item_embedding.weight
-            user_embedding = torch.cat((u_p_emb, u_s_emb), dim=1)
-            item_embedding = torch.cat((i_p_emb, i_s_emb), dim=1)
-            item_emb = item_embedding[item_inputs]
-
-            group_embedding = self.group_graph(self.group_embedding.weight, self.D, self.A)
-
-            bsz = group_inputs.shape[0]
-            max_len = members_mask.shape[1]
-            members_emb = user_embedding[members]
-
-            # attention aggregation
-            item_emb_attn = item_emb.unsqueeze(1).expand(bsz, max_len, -1)
-            at_emb = torch.cat((members_emb, item_emb_attn), dim=2)
-            at_wt = self.attention2(at_emb, members_mask)
-            g_emb_with_attention = torch.matmul(at_wt.unsqueeze(1), members_emb).squeeze()
-
-            if self.training is True:
-                # ssl
-                max_at = at_wt.clone()
-                max_indices = torch.argmax(at_wt, dim=1)
-                for i, max_index in enumerate(max_indices):
-                    max_at[i, max_index] = 0
-                min_at = at_wt.clone()
-                for i, row in enumerate(at_wt):
-                    nonzero_indices = torch.nonzero(row).squeeze()
-                    nonzero_values = row[nonzero_indices]
-                    min_index = torch.argmin(nonzero_values).item()
-                    min_at[i, min_index] = 0
-                g_without_max = torch.matmul(max_at.unsqueeze(1), members_emb).squeeze()
-                g_without_min = torch.matmul(min_at.unsqueeze(1), members_emb).squeeze()
-                anchor = self.fc_layer(g_emb_with_attention)
-                anchor = torch.tanh(anchor)
-                pos = self.fc_layer(g_without_min)
-                pos = torch.tanh(pos)
-                neg = self.fc_layer(g_without_max)
-                neg = torch.tanh(neg)
-                distance_pos = torch.pairwise_distance(anchor, pos, p=2)
-                distance_neg = torch.pairwise_distance(anchor, neg, p=2)
-                y2 = self.f(distance_pos - distance_neg + 1.0)
-
-                g_emb_pure = group_embedding[group_inputs]
-                att_coef, hyper_coef = self.att_gate(g_emb_with_attention), self.hyper_gate(
-                    g_emb_pure)
-                group_emb = att_coef * g_emb_with_attention + hyper_coef * g_emb_pure
-
-                element_emb = torch.mul(group_emb, item_emb)
-                new_emb = torch.cat((element_emb, group_emb, item_emb), dim=1)
-                y = torch.sigmoid(self.predict2(new_emb))
-                return y, y2
-            else:
-                g_emb_pure = group_embedding[group_inputs]
-                group_emb = g_emb_with_attention + g_emb_pure
-                element_emb = torch.mul(group_emb, item_emb)
-                new_emb = torch.cat((element_emb, group_emb, item_emb), dim=1)
-                y = torch.sigmoid(self.predict2(new_emb))
-                return y
-
+            ### 
         else:
-            ui_embedding = torch.cat((self.user_embedding.weight, self.item_embedding.weight), dim=0)
-            ui_embedding = self.hyper_graph(self.adj, ui_embedding)
-            user_embedding, item_embedding = torch.split(ui_embedding, [self.num_users, self.num_items], dim=0)
-            user_emb = user_embedding[user_inputs]
-            item_emb = item_embedding[item_inputs]
-
-            bsz = user_inputs.shape[0]
-            max_len = friends_mask.shape[1]
-            friends_emb = user_embedding[friends]
-
-            user_emb_attn = user_emb.unsqueeze(1).expand(bsz, max_len, -1)
-            at_emb = torch.cat((friends_emb, user_emb_attn), dim=2)
-            at_wt = self.attention1(at_emb, friends_mask)
-            user_emb_with_attention = torch.matmul(at_wt.unsqueeze(1), friends_emb).squeeze()
-
-            user_emb_pure = user_embedding[user_inputs]
-            user_emb = user_emb_with_attention + user_emb_pure
-
-            element_emb = torch.mul(user_emb, item_emb)
-            new_emb = torch.cat((element_emb, user_emb, item_emb), dim=1)
-            y = torch.sigmoid(self.predict1(new_emb))
-            return y
+            ###
 
 
 class HyperConv(nn.Module):
